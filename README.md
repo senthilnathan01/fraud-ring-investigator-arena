@@ -143,7 +143,7 @@ That table is intentionally not the whole story. The truth-stratified view matte
 - `fixed_sequence` slightly beats `freeze_first` on the hard fraud-only slice.
 - `seed_only` is almost perfect on benign-only slices but poor on fraud-only slices.
 
-See [outputs/baseline_eval_summary.md](/Users/tsn/projects/fraud-ring-investigator-arena/outputs/baseline_eval_summary.md) and [outputs/benchmark_sanity_check.md](/Users/tsn/projects/fraud-ring-investigator-arena/outputs/benchmark_sanity_check.md) for the full benchmark readout.
+See [baseline_eval_summary.md](outputs/baseline_eval_summary.md) and [benchmark_sanity_check.md](outputs/benchmark_sanity_check.md) for the full benchmark readout.
 
 ## Planned Training Story
 
