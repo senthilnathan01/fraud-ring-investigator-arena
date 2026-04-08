@@ -1,0 +1,6 @@
+spec_version: 1
+name: fraud_ring_investigator_arena
+type: space
+runtime: fastapi
+app: server.app:app
+port: 8000
