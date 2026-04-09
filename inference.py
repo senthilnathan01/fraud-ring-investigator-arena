@@ -27,7 +27,11 @@ API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL") or "http://localhost:8000"
-TASK_NAME = os.getenv("FRAUD_RING_ARENA_TASK") or "medium_confounded_ring_v1"
+TASK_ID = (
+    os.getenv("FRAUD_RING_ARENA_TASK_ID")
+    or os.getenv("FRAUD_RING_ARENA_TASK")
+    or "medium_confounded_ring_v1"
+)
 BENCHMARK = "fraud_ring_investigator_arena"
 MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.50"))
@@ -160,11 +164,11 @@ async def main() -> None:
     success = False
     error_message: str | None = None
 
-    log_start(task=TASK_NAME, env=BENCHMARK, model=MODEL_NAME)
+    log_start(task=TASK_ID, env=BENCHMARK, model=MODEL_NAME)
 
     try:
         env = await _connect_env()
-        reset_kwargs: dict[str, Any] = {"task_name": TASK_NAME}
+        reset_kwargs: dict[str, Any] = {"task_id": TASK_ID}
         if SEED is not None:
             reset_kwargs["seed"] = int(SEED)
         result = await env.reset(**reset_kwargs)

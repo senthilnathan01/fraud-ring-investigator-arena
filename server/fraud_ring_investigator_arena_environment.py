@@ -71,11 +71,13 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
         **kwargs: Any,
     ) -> FraudRingInvestigatorArenaObservation:
         del episode_id
-        task_name = kwargs.get("task_name") or os.getenv(
-            "FRAUD_RING_ARENA_TASK", "medium_confounded_ring_v1"
+        task_name = (
+            kwargs.get("task_id")
+            or kwargs.get("task_name")
+            or os.getenv("FRAUD_RING_ARENA_TASK", "medium_confounded_ring_v1")
         )
         if task_name not in TRACK_CONFIGS:
-            raise ValueError(f"Unknown task_name: {task_name}")
+            raise ValueError(f"Unknown task_id/task_name: {task_name}")
         if seed is None:
             seed = random.randint(0, 89_999)
         self._world = build_world(task_name, int(seed))
@@ -181,6 +183,7 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
             return
         self._state = FraudRingInvestigatorArenaState(
             episode_id=world.case_id,
+            task_id=world.task_name,
             step_count=world.step_count,
             task_name=world.task_name,
             case_id=world.case_id,
@@ -193,7 +196,11 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
         )
 
     def _metadata(self, world: HiddenWorld) -> dict[str, Any]:
-        metadata: dict[str, Any] = {"seed": float(world.seed)}
+        metadata: dict[str, Any] = {
+            "seed": float(world.seed),
+            "task_id": world.task_name,
+            "task_name": world.task_name,
+        }
         if world.done and world.terminal_metrics is not None:
             metadata["episode_score"] = float(world.final_score or 0.0)
             metadata["terminal_metrics"] = world.terminal_metrics

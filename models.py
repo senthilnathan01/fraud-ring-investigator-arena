@@ -97,6 +97,7 @@ class FraudRingInvestigatorArenaAction(Action):
 
 
 class FraudRingInvestigatorArenaObservation(Observation):
+    task_id: str
     task_name: str
     case_id: str
     step_count: int
@@ -115,6 +116,7 @@ class FraudRingInvestigatorArenaObservation(Observation):
 
 
 class FraudRingInvestigatorArenaState(State):
+    task_id: str = ""
     task_name: str = ""
     case_id: str = ""
     time_tick: int = 0

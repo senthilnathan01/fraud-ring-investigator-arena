@@ -6,19 +6,75 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+tags: [fraud, aml, reinforcement-learning, investigation, graph]
+endpoints:
+  reset: POST /reset
+  step: POST /step
+  state: POST /state
+  metadata: GET /metadata
+  health: GET /health
+observation_space:
+  type: object
+  fields:
+    - task_id: string
+    - task_name: string
+    - case_id: string
+    - step_count: integer
+    - time_tick: integer
+    - seed_alert: object
+    - visible_entities: list
+    - visible_links: list
+    - visible_payouts: list
+    - done: boolean
+action_space:
+  type: object
+  fields:
+    - action_type: string
+    - entity_id: string|null
+    - payout_id: string|null
+    - relation_type: string|null
+    - direction: string|null
+    - depth: integer|null
+    - decision: string|null
+    - suspect_entity_ids: list
+reward_space:
+  type: float
+  range: [0.0, 1.0]
+  partial_credit: true
+  breakdown:
+    - prevented_loss_ratio: float
+    - benign_harm_ratio: float
+    - suspect_f1: float
+    - disposition_accuracy: float
+    - cost_ratio: float
 tasks:
   - id: easy_single_ring_v1
     name: Easy Single Ring V1
+    difficulty: easy
+    description: Compact single-ring cases with clearer payout pressure and fewer benign confounders.
+    max_steps: 8
+    reward_range: [0.0, 1.0]
+    baseline_score: 0.6235
     prompt: Investigate a compact alert-driven case with a clearer single-ring fraud or benign lookalike pattern, then decide whether to clear or escalate before the first payout wave settles.
     grader: Deterministic episode scoring over prevented fraud loss, benign harm, suspect set quality, final disposition correctness, and investigation cost.
     reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
   - id: medium_confounded_ring_v1
     name: Medium Confounded Ring V1
+    difficulty: medium
+    description: Noisier local cases with additional benign confounders and one or two payout waves.
+    max_steps: 10
+    reward_range: [0.0, 1.0]
+    baseline_score: 0.5995
     prompt: Investigate a noisier local case with additional benign confounders and one or two payout waves, using sequential tool calls and interventions to decide whether to clear or escalate.
     grader: Deterministic episode scoring over prevented fraud loss, benign harm, suspect set quality, final disposition correctness, and investigation cost.
     reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
   - id: hard_reserve_ring_v1
     name: Hard Reserve Ring V1
+    difficulty: hard
+    description: Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior.
+    max_steps: 12
+    reward_range: [0.0, 1.0]
+    baseline_score: 0.4573
     prompt: Investigate a harder case with deeper hidden structure, more confounders, and possible reserve-route behavior that punishes premature intervention, then submit a final clear or escalate decision.
     grader: Deterministic episode scoring over prevented fraud loss, benign harm, suspect set quality, final disposition correctness, and investigation cost.
     reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
