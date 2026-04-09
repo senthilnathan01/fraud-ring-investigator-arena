@@ -20,7 +20,7 @@ dependencies = [
 server = "server.app:main"
 
 [tool.setuptools]
-py-modules = ["client", "models", "eval", "inference"]
+py-modules = ["client", "models", "eval", "inference", "task_bank"]
 
 [tool.setuptools.packages.find]
 include = ["server", "baselines"]
