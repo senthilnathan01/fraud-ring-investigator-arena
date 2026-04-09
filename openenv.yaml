@@ -10,7 +10,7 @@ tags: [fraud, aml, reinforcement-learning, investigation, graph]
 endpoints:
   reset: POST /reset
   step: POST /step
-  state: POST /state
+  state: GET /state
   metadata: GET /metadata
   health: GET /health
 observation_space:

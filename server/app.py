@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 from fastapi.routing import APIRoute
 
 try:
@@ -96,6 +98,44 @@ app = create_app(
     env_name="fraud_ring_investigator_arena",
     max_concurrent_envs=32,
 )
+
+_generated_openapi = app.openapi
+
+
+def custom_openapi() -> dict[str, object]:
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = deepcopy(_generated_openapi())
+    reset_request = openapi_schema.get("components", {}).get("schemas", {}).get("ResetRequest")
+    if isinstance(reset_request, dict):
+        properties = reset_request.setdefault("properties", {})
+        task_ids = [task["id"] for task in TASK_MANIFEST]
+        properties["task_id"] = {
+            "type": "string",
+            "title": "Task Id",
+            "description": "Optional task identifier selecting one of the declared benchmark tracks.",
+            "enum": task_ids,
+        }
+        properties["task_name"] = {
+            "type": "string",
+            "title": "Task Name",
+            "description": "Alias for task_id.",
+            "enum": task_ids,
+        }
+        reset_request["examples"] = [
+            {"task_id": task_id, "seed": 42}
+            for task_id in task_ids
+        ] + [
+            {"episode_id": "episode-001", "seed": 42},
+            {},
+        ]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 
 def _remove_get_route(path: str) -> None:
