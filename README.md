@@ -101,6 +101,8 @@ Run the root inference script against a local server:
 ENV_BASE_URL=http://localhost:8000 python3 inference.py
 ```
 
+By default, `inference.py` runs the three submission-facing tasks `task1`, `task2`, and `task3` sequentially. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
+
 ## Docker And Space Usage
 
 Build the local image:

@@ -31,12 +31,12 @@ TASK_ID = (
     os.getenv("FRAUD_RING_ARENA_TASK_ID")
     or os.getenv("FRAUD_RING_ARENA_TASK")
     or os.getenv("TASK_ID")
-    or "task1"
 )
 BENCHMARK = "fraud_ring_investigator_arena"
 MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.50"))
 SEED = os.getenv("FRAUD_RING_ARENA_SEED")
+DEFAULT_TASK_IDS = ["task1", "task2", "task3"]
 
 SYSTEM_PROMPT = textwrap.dedent(
     """
@@ -153,9 +153,8 @@ async def _connect_env() -> FraudRingInvestigatorArenaEnv:
     return env
 
 
-async def main() -> None:
+async def _run_task(task_id: str, llm_client: OpenAI | None) -> str | None:
     env: FraudRingInvestigatorArenaEnv | None = None
-    llm_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY) if API_KEY else None
     fallback_policy = FixedSequenceInvestigatorPolicy()
 
     rewards: list[float] = []
@@ -165,11 +164,11 @@ async def main() -> None:
     success = False
     error_message: str | None = None
 
-    log_start(task=TASK_ID, env=BENCHMARK, model=MODEL_NAME)
+    log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
 
     try:
         env = await _connect_env()
-        reset_kwargs: dict[str, Any] = {"task_id": TASK_ID}
+        reset_kwargs: dict[str, Any] = {"task_id": task_id}
         if SEED is not None:
             reset_kwargs["seed"] = int(SEED)
         result = await env.reset(**reset_kwargs)
@@ -207,8 +206,26 @@ async def main() -> None:
             except Exception as close_exc:
                 error_message = error_message or str(close_exc)
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+    return error_message
+
+
+def _task_ids_to_run() -> list[str]:
+    if TASK_ID:
+        return [TASK_ID]
+    return list(DEFAULT_TASK_IDS)
+
+
+async def main() -> None:
+    llm_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY) if API_KEY else None
+    error_messages: list[str] = []
+
+    for task_id in _task_ids_to_run():
+        error_message = await _run_task(task_id, llm_client)
         if error_message is not None:
-            raise RuntimeError(error_message)
+            error_messages.append(f"{task_id}: {error_message}")
+
+    if error_messages:
+        raise RuntimeError("; ".join(error_messages))
 
 
 if __name__ == "__main__":
