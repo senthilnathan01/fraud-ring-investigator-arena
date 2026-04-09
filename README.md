@@ -14,11 +14,11 @@ Fraud Ring Investigator Arena is a compact OpenEnv benchmark for sequential frau
 
 ## What The Environment Is
 
-V1 is a single-case benchmark with three procedural task tracks:
+V1 is a single-case benchmark with three procedural task tracks. The submission-facing task IDs are:
 
-- `easy_single_ring_v1`
-- `medium_confounded_ring_v1`
-- `hard_reserve_ring_v1`
+- `task1` → `easy_single_ring_v1`
+- `task2` → `medium_confounded_ring_v1`
+- `task3` → `hard_reserve_ring_v1`
 
 Each case mixes a seed alert, a partially visible entity/link/payout slice, and a hidden fraud or benign lookalike structure.
 
@@ -75,11 +75,11 @@ This makes the benchmark care about false positives, missed fraud, and action co
 
 ## Task Tracks
 
-| Track | Design intent | Current baseline read |
-| --- | --- | --- |
-| `easy_single_ring_v1` | compact single-ring cases with clearer payout pressure | aggressive early intervention is very strong on fraud cases |
-| `medium_confounded_ring_v1` | more confounders and noisier local structure | still favors fast intervention, but benign penalties remain real |
-| `hard_reserve_ring_v1` | reserve-route and more balanced fraud/benign mix | punishes reckless intervention enough to change the ranking |
+| Track ID | Canonical track | Design intent | Current baseline read |
+| --- | --- | --- | --- |
+| `task1` | `easy_single_ring_v1` | compact single-ring cases with clearer payout pressure | aggressive early intervention is very strong on fraud cases |
+| `task2` | `medium_confounded_ring_v1` | more confounders and noisier local structure | still favors fast intervention, but benign penalties remain real |
+| `task3` | `hard_reserve_ring_v1` | reserve-route and more balanced fraud/benign mix | punishes reckless intervention enough to change the ranking |
 
 ## Local Development
 

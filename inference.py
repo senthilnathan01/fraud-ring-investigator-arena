@@ -30,7 +30,8 @@ BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL") or "http:/
 TASK_ID = (
     os.getenv("FRAUD_RING_ARENA_TASK_ID")
     or os.getenv("FRAUD_RING_ARENA_TASK")
-    or "medium_confounded_ring_v1"
+    or os.getenv("TASK_ID")
+    or "task1"
 )
 BENCHMARK = "fraud_ring_investigator_arena"
 MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))

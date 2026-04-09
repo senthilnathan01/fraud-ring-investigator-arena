@@ -13,83 +13,12 @@ except Exception as exc:  # pragma: no cover
 
 try:
     from ..models import FraudRingInvestigatorArenaAction, FraudRingInvestigatorArenaObservation
-    from .fraud_ring_investigator_arena_environment import (
-        FraudRingInvestigatorArenaEnvironment,
-    )
+    from .environment import FraudRingInvestigatorArenaEnvironment, export_task_manifest
 except ImportError:
     from models import FraudRingInvestigatorArenaAction, FraudRingInvestigatorArenaObservation
-    from server.fraud_ring_investigator_arena_environment import (
-        FraudRingInvestigatorArenaEnvironment,
-    )
+    from server.environment import FraudRingInvestigatorArenaEnvironment, export_task_manifest
 
-TASK_MANIFEST = [
-    {
-        "id": "easy_single_ring_v1",
-        "name": "Easy Single Ring V1",
-        "difficulty": "easy",
-        "description": (
-            "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
-        ),
-        "max_steps": 8,
-        "reward_range": [0.0, 1.0],
-        "baseline_score": 0.6235,
-        "prompt": (
-            "Investigate a compact alert-driven case with a clearer single-ring fraud "
-            "or benign lookalike pattern, then decide whether to clear or escalate "
-            "before the first payout wave settles."
-        ),
-        "grader": "server.environment:grade_easy",
-        "reward_definition": (
-            "Step penalties for investigation actions plus terminal score driven by "
-            "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
-            "correctness, and cost_ratio."
-        ),
-    },
-    {
-        "id": "medium_confounded_ring_v1",
-        "name": "Medium Confounded Ring V1",
-        "difficulty": "medium",
-        "description": (
-            "Noisier local cases with additional benign confounders and one or two payout waves."
-        ),
-        "max_steps": 10,
-        "reward_range": [0.0, 1.0],
-        "baseline_score": 0.5995,
-        "prompt": (
-            "Investigate a noisier local case with additional benign confounders and "
-            "one or two payout waves, using sequential tool calls and interventions "
-            "to decide whether to clear or escalate."
-        ),
-        "grader": "server.environment:grade_medium",
-        "reward_definition": (
-            "Step penalties for investigation actions plus terminal score driven by "
-            "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
-            "correctness, and cost_ratio."
-        ),
-    },
-    {
-        "id": "hard_reserve_ring_v1",
-        "name": "Hard Reserve Ring V1",
-        "difficulty": "hard",
-        "description": (
-            "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
-        ),
-        "max_steps": 12,
-        "reward_range": [0.0, 1.0],
-        "baseline_score": 0.4573,
-        "prompt": (
-            "Investigate a harder case with deeper hidden structure, more confounders, "
-            "and possible reserve-route behavior that punishes premature intervention, "
-            "then submit a final clear or escalate decision."
-        ),
-        "grader": "server.environment:grade_hard",
-        "reward_definition": (
-            "Step penalties for investigation actions plus terminal score driven by "
-            "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
-            "correctness, and cost_ratio."
-        ),
-    },
-]
+TASK_MANIFEST = export_task_manifest()
 
 app = create_app(
     FraudRingInvestigatorArenaEnvironment,

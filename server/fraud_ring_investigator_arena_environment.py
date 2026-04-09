@@ -57,6 +57,18 @@ BASE_ACTION_PENALTIES: dict[str, float] = {
     "submit_case": 0.0,
 }
 
+TASK_ID_ALIASES: dict[str, str] = {
+    "task1": "easy_single_ring_v1",
+    "task2": "medium_confounded_ring_v1",
+    "task3": "hard_reserve_ring_v1",
+}
+
+TRACK_ID_TO_TASK_ALIAS: dict[str, str] = {
+    track_id: task_id for task_id, track_id in TASK_ID_ALIASES.items()
+}
+
+DEFAULT_TASK_ID = "task1"
+
 
 def _extract_episode_score(payload: Any) -> float | None:
     if payload is None:
@@ -96,6 +108,18 @@ def grade_hard_reserve_ring_v1(*args: Any, **kwargs: Any) -> float:
     return _grade_from_payload(*args, **kwargs)
 
 
+def resolve_task_name(task_id: str | None) -> str | None:
+    if task_id is None:
+        return None
+    return TASK_ID_ALIASES.get(task_id, task_id)
+
+
+def task_alias_for_track(track_id: str | None) -> str:
+    if track_id is None:
+        return DEFAULT_TASK_ID
+    return TRACK_ID_TO_TASK_ALIAS.get(track_id, track_id)
+
+
 class FraudRingInvestigatorArenaEnvironment(Environment):
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
@@ -110,11 +134,15 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
         **kwargs: Any,
     ) -> FraudRingInvestigatorArenaObservation:
         del episode_id
-        task_name = (
+        requested_task = (
             kwargs.get("task_id")
             or kwargs.get("task_name")
-            or os.getenv("FRAUD_RING_ARENA_TASK", "medium_confounded_ring_v1")
+            or os.getenv("TASK_ID")
+            or os.getenv("FRAUD_RING_ARENA_TASK_ID")
+            or os.getenv("FRAUD_RING_ARENA_TASK")
+            or DEFAULT_TASK_ID
         )
+        task_name = resolve_task_name(requested_task)
         if task_name not in TRACK_CONFIGS:
             raise ValueError(f"Unknown task_id/task_name: {task_name}")
         if seed is None:
@@ -222,7 +250,7 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
             return
         self._state = FraudRingInvestigatorArenaState(
             episode_id=world.case_id,
-            task_id=world.task_name,
+            task_id=task_alias_for_track(world.task_name),
             step_count=world.step_count,
             task_name=world.task_name,
             case_id=world.case_id,
@@ -237,8 +265,9 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
     def _metadata(self, world: HiddenWorld) -> dict[str, Any]:
         metadata: dict[str, Any] = {
             "seed": float(world.seed),
-            "task_id": world.task_name,
+            "task_id": task_alias_for_track(world.task_name),
             "task_name": world.task_name,
+            "track_id": world.task_name,
         }
         if world.done and world.terminal_metrics is not None:
             metadata["episode_score"] = float(world.final_score or 0.0)

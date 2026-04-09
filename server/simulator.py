@@ -33,6 +33,12 @@ TrackName = Literal[
     "hard_reserve_ring_v1",
 ]
 
+TRACK_ID_TO_TASK_ALIAS: dict[TrackName, str] = {
+    "easy_single_ring_v1": "task1",
+    "medium_confounded_ring_v1": "task2",
+    "hard_reserve_ring_v1": "task3",
+}
+
 ACTION_COSTS: dict[str, int] = {
     "inspect_entity": 1,
     "expand_links": 1,
@@ -1182,7 +1188,7 @@ def build_observation(
     metadata: dict[str, Any] | None = None,
 ) -> FraudRingInvestigatorArenaObservation:
     return FraudRingInvestigatorArenaObservation(
-        task_id=world.task_name,
+        task_id=TRACK_ID_TO_TASK_ALIAS[world.task_name],
         task_name=world.task_name,
         case_id=world.case_id,
         step_count=world.step_count,
