@@ -6,28 +6,6 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
-entrypoint:
-  server: server.app:app
-  client: client.FraudRingInvestigatorArenaEnv
-environment:
-  interface:
-    - reset
-    - step
-    - state
-  typed_models: models.py
-  action_space:
-    - inspect_entity
-    - expand_links
-    - trace_funds
-    - inspect_payout
-    - hold_payout
-    - freeze_entity
-    - advance_time
-    - submit_case
-deployment:
-  dockerfile: Dockerfile
-  health_endpoint: /health
-  reset_endpoint: /reset
 tasks:
   - id: easy_single_ring_v1
     name: Easy Single Ring V1

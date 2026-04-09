@@ -1182,7 +1182,6 @@ def build_observation(
     metadata: dict[str, Any] | None = None,
 ) -> FraudRingInvestigatorArenaObservation:
     return FraudRingInvestigatorArenaObservation(
-        task_id=world.task_name,
         task_name=world.task_name,
         case_id=world.case_id,
         step_count=world.step_count,
