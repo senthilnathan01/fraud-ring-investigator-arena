@@ -5,11 +5,18 @@ from typing import Any
 from openenv.core import EnvClient
 from openenv.core.client_types import StepResult
 
-from models import (
-    FraudRingInvestigatorArenaAction,
-    FraudRingInvestigatorArenaObservation,
-    FraudRingInvestigatorArenaState,
-)
+try:
+    from .models import (
+        FraudRingInvestigatorArenaAction,
+        FraudRingInvestigatorArenaObservation,
+        FraudRingInvestigatorArenaState,
+    )
+except ImportError:
+    from models import (
+        FraudRingInvestigatorArenaAction,
+        FraudRingInvestigatorArenaObservation,
+        FraudRingInvestigatorArenaState,
+    )
 
 
 class FraudRingInvestigatorArenaEnv(

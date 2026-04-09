@@ -17,10 +17,20 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+server = "fraud_ring_investigator_arena.server.app:main"
 
 [tool.setuptools]
-py-modules = ["client", "models", "eval", "inference"]
+include-package-data = true
+packages = [
+  "fraud_ring_investigator_arena",
+  "fraud_ring_investigator_arena.server",
+  "fraud_ring_investigator_arena.baselines",
+]
 
-[tool.setuptools.packages.find]
-include = ["server", "baselines"]
+[tool.setuptools.package-dir]
+fraud_ring_investigator_arena = "."
+"fraud_ring_investigator_arena.server" = "server"
+"fraud_ring_investigator_arena.baselines" = "baselines"
+
+[tool.setuptools.package-data]
+fraud_ring_investigator_arena = ["openenv.yaml", "README.md"]
