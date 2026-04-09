@@ -36,10 +36,7 @@ TASK_MANIFEST = [
             "or benign lookalike pattern, then decide whether to clear or escalate "
             "before the first payout wave settles."
         ),
-        "grader": (
-            "Deterministic episode scoring over prevented fraud loss, benign harm, "
-            "suspect set quality, final disposition correctness, and investigation cost."
-        ),
+        "grader": "server.fraud_ring_investigator_arena_environment:grade_easy_single_ring_v1",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -61,10 +58,7 @@ TASK_MANIFEST = [
             "one or two payout waves, using sequential tool calls and interventions "
             "to decide whether to clear or escalate."
         ),
-        "grader": (
-            "Deterministic episode scoring over prevented fraud loss, benign harm, "
-            "suspect set quality, final disposition correctness, and investigation cost."
-        ),
+        "grader": "server.fraud_ring_investigator_arena_environment:grade_medium_confounded_ring_v1",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -86,10 +80,7 @@ TASK_MANIFEST = [
             "and possible reserve-route behavior that punishes premature intervention, "
             "then submit a final clear or escalate decision."
         ),
-        "grader": (
-            "Deterministic episode scoring over prevented fraud loss, benign harm, "
-            "suspect set quality, final disposition correctness, and investigation cost."
-        ),
+        "grader": "server.fraud_ring_investigator_arena_environment:grade_hard_reserve_ring_v1",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
