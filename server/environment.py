@@ -37,7 +37,15 @@ TASKS: dict[str, dict[str, Any]] = {
             "or benign lookalike pattern, then decide whether to clear or escalate "
             "before the first payout wave settles."
         ),
-        "grader": "server.environment:grade_easy",
+        "grader": {
+            "type": "llm",
+            "prompt_template": (
+                "Score this easy fraud-investigation episode from 0.0 to 1.0 using "
+                "the benchmark rubric: reward prevented fraud loss, penalize benign "
+                "harm and unnecessary investigation cost, reward accurate suspect "
+                "identification, and reward the correct final clear-or-escalate disposition."
+            ),
+        },
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -60,7 +68,15 @@ TASKS: dict[str, dict[str, Any]] = {
             "one or two payout waves, using sequential tool calls and interventions "
             "to decide whether to clear or escalate."
         ),
-        "grader": "server.environment:grade_medium",
+        "grader": {
+            "type": "llm",
+            "prompt_template": (
+                "Score this medium fraud-investigation episode from 0.0 to 1.0 using "
+                "the benchmark rubric: reward prevented fraud loss, penalize benign "
+                "harm and unnecessary investigation cost, reward accurate suspect "
+                "identification, and reward the correct final clear-or-escalate disposition."
+            ),
+        },
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -83,7 +99,15 @@ TASKS: dict[str, dict[str, Any]] = {
             "and possible reserve-route behavior that punishes premature intervention, "
             "then submit a final clear or escalate decision."
         ),
-        "grader": "server.environment:grade_hard",
+        "grader": {
+            "type": "llm",
+            "prompt_template": (
+                "Score this hard fraud-investigation episode from 0.0 to 1.0 using "
+                "the benchmark rubric: reward prevented fraud loss, penalize benign "
+                "harm and unnecessary investigation cost, reward accurate suspect "
+                "identification, and reward the correct final clear-or-escalate disposition."
+            ),
+        },
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "

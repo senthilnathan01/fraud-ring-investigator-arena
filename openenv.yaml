@@ -53,29 +53,32 @@ tasks:
     name: Easy Single Ring V1
     difficulty: easy
     description: Compact single-ring cases with clearer payout pressure and fewer benign confounders.
-    max_steps: 8
-    reward_range: [0.0, 1.0]
-    baseline_score: 0.6235
-    prompt: Investigate a compact alert-driven case with a clearer single-ring fraud or benign lookalike pattern, then decide whether to clear or escalate before the first payout wave settles.
-    grader: "server.environment:grade_easy"
-    reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
+    grader:
+      type: llm
+      prompt_template: >
+        Score this easy fraud-investigation episode from 0.0 to 1.0 using the
+        benchmark rubric: reward prevented fraud loss, penalize benign harm and
+        unnecessary investigation cost, reward accurate suspect identification,
+        and reward the correct final clear-or-escalate disposition.
   - id: task2
     name: Medium Confounded Ring V1
     difficulty: medium
     description: Noisier local cases with additional benign confounders and one or two payout waves.
-    max_steps: 10
-    reward_range: [0.0, 1.0]
-    baseline_score: 0.5995
-    prompt: Investigate a noisier local case with additional benign confounders and one or two payout waves, using sequential tool calls and interventions to decide whether to clear or escalate.
-    grader: "server.environment:grade_medium"
-    reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
+    grader:
+      type: llm
+      prompt_template: >
+        Score this medium fraud-investigation episode from 0.0 to 1.0 using the
+        benchmark rubric: reward prevented fraud loss, penalize benign harm and
+        unnecessary investigation cost, reward accurate suspect identification,
+        and reward the correct final clear-or-escalate disposition.
   - id: task3
     name: Hard Reserve Ring V1
     difficulty: hard
     description: Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior.
-    max_steps: 12
-    reward_range: [0.0, 1.0]
-    baseline_score: 0.4573
-    prompt: Investigate a harder case with deeper hidden structure, more confounders, and possible reserve-route behavior that punishes premature intervention, then submit a final clear or escalate decision.
-    grader: "server.environment:grade_hard"
-    reward_definition: Step penalties for investigation actions plus terminal score driven by prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition correctness, and cost_ratio.
+    grader:
+      type: llm
+      prompt_template: >
+        Score this hard fraud-investigation episode from 0.0 to 1.0 using the
+        benchmark rubric: reward prevented fraud loss, penalize benign harm and
+        unnecessary investigation cost, reward accurate suspect identification,
+        and reward the correct final clear-or-escalate disposition.
