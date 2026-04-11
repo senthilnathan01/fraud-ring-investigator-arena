@@ -66,7 +66,7 @@ The typed V1 action surface is:
 
 ## Scoring Overview
 
-Scoring is deterministic and reward-relevant metrics differ by case truth:
+Episode scoring is normalized to `[0, 1]`, and the reward-relevant metrics differ by case truth:
 
 - Fraud cases emphasize prevented loss, suspect quality, intervention precision, and correct final disposition.
 - Benign cases emphasize correct clearance, low benign harm, low false suspicion, and low investigation cost.
@@ -89,7 +89,7 @@ Start the environment server:
 python3 -m server.app
 ```
 
-Run the full deterministic baseline matrix and save JSON output:
+Run the full baseline matrix and save JSON output:
 
 ```bash
 python3 eval.py --policy all --task-name all --episodes 25 --output outputs/baseline_eval_raw.txt
@@ -131,7 +131,7 @@ The current repo state has already passed:
 
 ## Baseline Evaluation Snapshot
 
-Overall episode score, 25 deterministic episodes per policy-track:
+Overall episode score, 25 seeded episodes per policy-track:
 
 | Track | `seed_only` | `fixed_sequence` | `freeze_first` |
 | --- | ---: | ---: | ---: |
@@ -162,6 +162,7 @@ The intended first training pass is straightforward:
 - `pyproject.toml`
 - `models.py`
 - `client.py`
+- `server/graders.py`
 - `server/app.py`
 - `inference.py`
 

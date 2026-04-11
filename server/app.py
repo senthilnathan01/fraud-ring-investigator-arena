@@ -95,7 +95,7 @@ def metadata() -> dict[str, object]:
         "name": "fraud_ring_investigator_arena",
         "description": (
             "A sequential fraud investigation environment with partial observability, "
-            "costly interventions, delayed payout consequences, and deterministic scoring."
+            "costly interventions, delayed payout consequences, and normalized episode scoring."
         ),
         "version": "0.1.0",
         "task_count": len(TASK_MANIFEST),

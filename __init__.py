@@ -6,13 +6,12 @@ from .models import (
     FraudRingInvestigatorArenaObservation,
     FraudRingInvestigatorArenaState,
 )
-from .server.environment import GRADERS, TASKS
+from .server.environment import TASKS
 
 __all__ = [
     "FraudRingInvestigatorArenaAction",
     "FraudRingInvestigatorArenaEnv",
     "FraudRingInvestigatorArenaObservation",
     "FraudRingInvestigatorArenaState",
-    "GRADERS",
     "TASKS",
 ]

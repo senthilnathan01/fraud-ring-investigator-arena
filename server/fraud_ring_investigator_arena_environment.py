@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import random
-from collections.abc import Mapping
 from typing import Any
 
 from openenv.core.env_server.interfaces import Environment
@@ -68,45 +67,6 @@ TRACK_ID_TO_TASK_ALIAS: dict[str, str] = {
 }
 
 DEFAULT_TASK_ID = "task1"
-
-
-def _extract_episode_score(payload: Any) -> float | None:
-    if payload is None:
-        return None
-    if isinstance(payload, HiddenWorld):
-        return compute_terminal_metrics(payload).episode_score
-    if hasattr(payload, "metadata"):
-        return _extract_episode_score(getattr(payload, "metadata"))
-    if hasattr(payload, "terminal_metrics"):
-        return _extract_episode_score(getattr(payload, "terminal_metrics"))
-    if isinstance(payload, Mapping):
-        terminal_metrics = payload.get("terminal_metrics")
-        if isinstance(terminal_metrics, Mapping) and "episode_score" in terminal_metrics:
-            return float(terminal_metrics["episode_score"])
-        if "episode_score" in payload:
-            return float(payload["episode_score"])
-    return None
-
-
-def _grade_from_payload(*args: Any, **kwargs: Any) -> float:
-    for candidate in [*args, *kwargs.values()]:
-        score = _extract_episode_score(candidate)
-        if score is not None:
-            return max(0.0, min(1.0, float(score)))
-    return 0.0
-
-
-def grade_easy_single_ring_v1(*args: Any, **kwargs: Any) -> float:
-    return _grade_from_payload(*args, **kwargs)
-
-
-def grade_medium_confounded_ring_v1(*args: Any, **kwargs: Any) -> float:
-    return _grade_from_payload(*args, **kwargs)
-
-
-def grade_hard_reserve_ring_v1(*args: Any, **kwargs: Any) -> float:
-    return _grade_from_payload(*args, **kwargs)
-
 
 def resolve_task_name(task_id: str | None) -> str | None:
     if task_id is None:
@@ -238,7 +198,7 @@ class FraudRingInvestigatorArenaEnvironment(Environment):
             name="fraud_ring_investigator_arena",
             description=(
                 "A sequential fraud investigation environment with partial observability, "
-                "costly interventions, delayed payout consequences, and deterministic scoring."
+                "costly interventions, delayed payout consequences, and normalized episode scoring."
             ),
             version="0.1.0",
         )

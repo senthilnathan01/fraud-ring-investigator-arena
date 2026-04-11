@@ -6,17 +6,11 @@ try:
     from .fraud_ring_investigator_arena_environment import (
         DEFAULT_TASK_ID,
         FraudRingInvestigatorArenaEnvironment,
-        grade_easy_single_ring_v1,
-        grade_hard_reserve_ring_v1,
-        grade_medium_confounded_ring_v1,
     )
 except ImportError:
     from server.fraud_ring_investigator_arena_environment import (
         DEFAULT_TASK_ID,
         FraudRingInvestigatorArenaEnvironment,
-        grade_easy_single_ring_v1,
-        grade_hard_reserve_ring_v1,
-        grade_medium_confounded_ring_v1,
     )
 
 
@@ -37,15 +31,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "or benign lookalike pattern, then decide whether to clear or escalate "
             "before the first payout wave settles."
         ),
-        "grader": {
-            "type": "llm",
-            "prompt_template": (
-                "Score this easy fraud-investigation episode from 0.0 to 1.0 using "
-                "the benchmark rubric: reward prevented fraud loss, penalize benign "
-                "harm and unnecessary investigation cost, reward accurate suspect "
-                "identification, and reward the correct final clear-or-escalate disposition."
-            ),
-        },
+        "grader": "server.graders:EasyTaskGrader",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -68,15 +54,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "one or two payout waves, using sequential tool calls and interventions "
             "to decide whether to clear or escalate."
         ),
-        "grader": {
-            "type": "llm",
-            "prompt_template": (
-                "Score this medium fraud-investigation episode from 0.0 to 1.0 using "
-                "the benchmark rubric: reward prevented fraud loss, penalize benign "
-                "harm and unnecessary investigation cost, reward accurate suspect "
-                "identification, and reward the correct final clear-or-escalate disposition."
-            ),
-        },
+        "grader": "server.graders:MediumTaskGrader",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -99,15 +77,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "and possible reserve-route behavior that punishes premature intervention, "
             "then submit a final clear or escalate decision."
         ),
-        "grader": {
-            "type": "llm",
-            "prompt_template": (
-                "Score this hard fraud-investigation episode from 0.0 to 1.0 using "
-                "the benchmark rubric: reward prevented fraud loss, penalize benign "
-                "harm and unnecessary investigation cost, reward accurate suspect "
-                "identification, and reward the correct final clear-or-escalate disposition."
-            ),
-        },
+        "grader": "server.graders:HardTaskGrader",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -119,25 +89,6 @@ TASKS: dict[str, dict[str, Any]] = {
 TRACK_TO_TASK_ID = {task["track_id"]: task_id for task_id, task in TASKS.items()}
 
 
-def grade_easy(*args: Any, **kwargs: Any) -> float:
-    return grade_easy_single_ring_v1(*args, **kwargs)
-
-
-def grade_medium(*args: Any, **kwargs: Any) -> float:
-    return grade_medium_confounded_ring_v1(*args, **kwargs)
-
-
-def grade_hard(*args: Any, **kwargs: Any) -> float:
-    return grade_hard_reserve_ring_v1(*args, **kwargs)
-
-
-GRADERS = {
-    "task1": grade_easy,
-    "task2": grade_medium,
-    "task3": grade_hard,
-}
-
-
 def export_task_manifest() -> list[dict[str, Any]]:
     return [dict(task) for task in TASKS.values()]
 
@@ -145,11 +96,7 @@ def export_task_manifest() -> list[dict[str, Any]]:
 __all__ = [
     "DEFAULT_TASK_ID",
     "FraudRingInvestigatorArenaEnvironment",
-    "GRADERS",
     "TASKS",
     "TRACK_TO_TASK_ID",
     "export_task_manifest",
-    "grade_easy",
-    "grade_medium",
-    "grade_hard",
 ]

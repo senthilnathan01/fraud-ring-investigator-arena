@@ -1,7 +1,7 @@
 spec_version: 1
 name: fraud_ring_investigator_arena
 version: 0.1.0
-description: Sequential fraud investigation benchmark with three deterministic procedural task tracks.
+description: Sequential fraud investigation benchmark with three seeded procedural task tracks.
 type: space
 runtime: fastapi
 app: server.app:app
@@ -53,32 +53,14 @@ tasks:
     name: Easy Single Ring V1
     difficulty: easy
     description: Compact single-ring cases with clearer payout pressure and fewer benign confounders.
-    grader:
-      type: llm
-      prompt_template: >
-        Score this easy fraud-investigation episode from 0.0 to 1.0 using the
-        benchmark rubric: reward prevented fraud loss, penalize benign harm and
-        unnecessary investigation cost, reward accurate suspect identification,
-        and reward the correct final clear-or-escalate disposition.
+    grader: server.graders:EasyTaskGrader
   - id: task2
     name: Medium Confounded Ring V1
     difficulty: medium
     description: Noisier local cases with additional benign confounders and one or two payout waves.
-    grader:
-      type: llm
-      prompt_template: >
-        Score this medium fraud-investigation episode from 0.0 to 1.0 using the
-        benchmark rubric: reward prevented fraud loss, penalize benign harm and
-        unnecessary investigation cost, reward accurate suspect identification,
-        and reward the correct final clear-or-escalate disposition.
+    grader: server.graders:MediumTaskGrader
   - id: task3
     name: Hard Reserve Ring V1
     difficulty: hard
     description: Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior.
-    grader:
-      type: llm
-      prompt_template: >
-        Score this hard fraud-investigation episode from 0.0 to 1.0 using the
-        benchmark rubric: reward prevented fraud loss, penalize benign harm and
-        unnecessary investigation cost, reward accurate suspect identification,
-        and reward the correct final clear-or-escalate disposition.
+    grader: server.graders:HardTaskGrader
