@@ -31,7 +31,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "or benign lookalike pattern, then decide whether to clear or escalate "
             "before the first payout wave settles."
         ),
-        "grader": "server.graders:EasyTaskGrader",
+        "grader": "server.graders:grade_easy",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -54,7 +54,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "one or two payout waves, using sequential tool calls and interventions "
             "to decide whether to clear or escalate."
         ),
-        "grader": "server.graders:MediumTaskGrader",
+        "grader": "server.graders:grade_medium",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "
@@ -77,7 +77,7 @@ TASKS: dict[str, dict[str, Any]] = {
             "and possible reserve-route behavior that punishes premature intervention, "
             "then submit a final clear or escalate decision."
         ),
-        "grader": "server.graders:HardTaskGrader",
+        "grader": "server.graders:grade_hard",
         "reward_definition": (
             "Step penalties for investigation actions plus terminal score driven by "
             "prevented_loss_ratio, benign_harm_ratio, suspect_f1, disposition "

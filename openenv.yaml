@@ -53,14 +53,14 @@ tasks:
     name: Easy Single Ring V1
     difficulty: easy
     description: Compact single-ring cases with clearer payout pressure and fewer benign confounders.
-    grader: server.graders:EasyTaskGrader
+    grader: server.graders:grade_easy
   - id: task2
     name: Medium Confounded Ring V1
     difficulty: medium
     description: Noisier local cases with additional benign confounders and one or two payout waves.
-    grader: server.graders:MediumTaskGrader
+    grader: server.graders:grade_medium
   - id: task3
     name: Hard Reserve Ring V1
     difficulty: hard
     description: Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior.
-    grader: server.graders:HardTaskGrader
+    grader: server.graders:grade_hard
