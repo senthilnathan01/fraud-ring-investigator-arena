@@ -49,18 +49,18 @@ tasks:
     description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
     max_steps: 8
     weight: 0.3
-    grader: "server.graders:EasyGrader"
+    grader: server.graders:EasyGrader
   - id: medium
     name: Medium Confounded Ring V1
     difficulty: medium
     description: "Noisier local cases with additional benign confounders and one or two payout waves."
     max_steps: 10
     weight: 0.5
-    grader: "server.graders:MediumGrader"
+    grader: server.graders:MediumGrader
   - id: hard
     name: Hard Reserve Ring V1
     difficulty: hard
     description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
     max_steps: 12
     weight: 1.0
-    grader: "server.graders:HardGrader"
+    grader: server.graders:HardGrader
