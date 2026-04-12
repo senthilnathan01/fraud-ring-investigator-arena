@@ -18,8 +18,8 @@ endpoints:
   health: /health
 
 reward:
-  min: 0.0
-  max: 1.0
+  min: 0.01
+  max: 0.99
 
 observation_space:
   type: object
@@ -73,6 +73,7 @@ tasks:
     difficulty: easy
     description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
     max_steps: 8
+    reward_range: [0.01, 0.99]
     grader: server.graders:EasyGrader
 
   - id: medium
@@ -80,6 +81,7 @@ tasks:
     difficulty: medium
     description: "Noisier local cases with additional benign confounders and one or two payout waves."
     max_steps: 10
+    reward_range: [0.01, 0.99]
     grader: server.graders:MediumGrader
 
   - id: hard
@@ -87,4 +89,5 @@ tasks:
     difficulty: hard
     description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
     max_steps: 12
+    reward_range: [0.01, 0.99]
     grader: server.graders:HardGrader

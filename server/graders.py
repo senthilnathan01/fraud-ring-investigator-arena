@@ -85,17 +85,26 @@ def _grade(expected_task_id: str, env: Any, *args: Any, **kwargs: Any) -> float:
 
 
 class EasyGrader:
-    def grade(self, env: Any, *args: Any, **kwargs: Any) -> float:
+    def __call__(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
+        return self.grade(env, *args, **kwargs)
+
+    def grade(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
         return _grade("easy", env, *args, **kwargs)
 
 
 class MediumGrader:
-    def grade(self, env: Any, *args: Any, **kwargs: Any) -> float:
+    def __call__(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
+        return self.grade(env, *args, **kwargs)
+
+    def grade(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
         return _grade("medium", env, *args, **kwargs)
 
 
 class HardGrader:
-    def grade(self, env: Any, *args: Any, **kwargs: Any) -> float:
+    def __call__(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
+        return self.grade(env, *args, **kwargs)
+
+    def grade(self, env: Any = None, *args: Any, **kwargs: Any) -> float:
         return _grade("hard", env, *args, **kwargs)
 
 
