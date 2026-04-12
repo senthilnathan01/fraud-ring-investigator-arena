@@ -26,7 +26,7 @@ IMAGE_NAME = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
-BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL") or "http://localhost:8000"
+BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL") or "http://localhost:7860"
 TASK_ID = (
     os.getenv("FRAUD_RING_ARENA_TASK_ID")
     or os.getenv("FRAUD_RING_ARENA_TASK")

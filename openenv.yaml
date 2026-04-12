@@ -5,7 +5,7 @@ description: "Sequential fraud investigation benchmark with three seeded procedu
 type: space
 runtime: fastapi
 app: server.app:app
-port: 8000
+port: 7860
 endpoints:
   reset: /reset
   step: /step

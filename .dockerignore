@@ -1,0 +1,8 @@
+.git
+.gitignore
+.DS_Store
+__pycache__/
+baselines/__pycache__/
+server/__pycache__/
+outputs/
+*.egg-info/
