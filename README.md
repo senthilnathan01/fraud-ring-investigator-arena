@@ -1,59 +1,54 @@
 ---
-title: Fraud Ring Investigator Arena Environment Server
+title: Fraud Ring Investigator Arena
 emoji: "🕵️"
 sdk: docker
 app_port: 7860
 base_path: /web
 tags:
   - openenv
+  - reinforcement-learning
+  - fraud-detection
 ---
 
 # Fraud Ring Investigator Arena
 
-Fraud Ring Investigator Arena is a compact OpenEnv benchmark for sequential fraud investigation. Each episode is a single alert-driven case inside a hidden local financial world. The agent must uncover linked structure, spend limited investigation budget, place risky interventions, decide when to wait for delayed outcomes, and finally clear or escalate the case.
+Fraud Ring Investigator Arena is an OpenEnv benchmark for sequential fraud investigation. Each episode is a compact alert-driven AML case with hidden structure, partial observability, action costs, delayed payout consequences, and a final clear-or-escalate decision.
 
-## What The Environment Is
+The benchmark is designed for RL-style tool use rather than one-shot classification. The agent must choose what to inspect, what to hold, when to wait, and when the evidence is strong enough to submit the case.
 
-V1 is a single-case benchmark with three procedural task tracks. The submission-facing task IDs are:
+## Environment Summary
 
-- `easy` → `easy_single_ring_v1`
-- `medium` → `medium_confounded_ring_v1`
-- `hard` → `hard_reserve_ring_v1`
+- Environment name: `fraud_ring_investigator_arena`
+- Submission task IDs: `easy`, `medium`, `hard`
+- Canonical tracks:
+  - `easy` → `easy_single_ring_v1`
+  - `medium` → `medium_confounded_ring_v1`
+  - `hard` → `hard_reserve_ring_v1`
+- Reward range: `[0.0, 1.0]`
+- Runtime port: `7860`
 
-Each case mixes a seed alert, a partially visible entity/link/payout slice, and a hidden fraud or benign lookalike structure.
+## Why This Is RL-Native
 
-## Why RL Is Justified Here
+This benchmark is not a wrapped fraud classifier.
 
-This is an RL-native task because the agent must make sequential, budgeted decisions under partial observability. Actions reveal different parts of the hidden world, interventions have explicit costs, and the most important consequences arrive later when held or unblocked payouts settle.
+- The agent starts from a partial visible slice of the case.
+- Fraud structure and future payout consequences are hidden.
+- Investigation actions have explicit costs.
+- Some interventions help on fraud cases and hurt on benign cases.
+- Important consequences are delayed until later payout waves settle.
+- Final score depends on a sequence of actions, not a single label.
 
-## Why This Is Not Just Fraud Classification
+## Episode Flow
 
-A one-shot classifier cannot solve the main tradeoff. The agent is not asked to label a static graph once. It must decide:
-
-- what to inspect
-- which links to expand
-- when to trace funds
-- whether to hold or freeze
-- when to advance time
-- when the case is strong enough to submit
-
-The baseline results already show the difference: `seed_only` is near-perfect on benign cases but much weaker on fraud cases because it prevents no loss.
-
-## Episode Structure
-
-1. `reset()` returns a seed alert and a small visible slice of the case.
-2. The agent investigates with typed tool-use actions.
-3. Interventions can block fraud, hurt benign entities, or arm delayed downstream effects.
-4. `advance_time` resolves pending payout waves.
-5. The agent eventually `submit_case`s with `clear` or `escalate`.
-
-## Hidden State And Delayed Consequences
-
-The hidden state includes the latent entity graph, fraud motif roles, future payout schedule, and delayed blocked-versus-escaped value. Agents never see the full ring or the full benign lookalike cluster directly. The hard track adds reserve-route behavior, which makes reckless early freezing less reliable.
+1. `reset()` returns a seed alert plus a small visible slice of the entity, link, and payout graph.
+2. The agent explores with typed actions such as inspection, link expansion, payout inspection, and fund tracing.
+3. The agent may intervene with `hold_payout` or `freeze_entity`.
+4. The agent may `advance_time` to resolve delayed payout effects.
+5. The agent ends the case with `submit_case(decision="clear" | "escalate")`.
 
 ## Action Space
 
-The typed V1 action surface is:
+The typed action surface is:
 
 - `inspect_entity`
 - `expand_links`
@@ -64,124 +59,138 @@ The typed V1 action surface is:
 - `advance_time`
 - `submit_case`
 
-## Scoring Overview
+The full typed models live in:
 
-Episode scoring is normalized to `[0, 1]`, and the reward-relevant metrics differ by case truth:
+- `models.py`
+- `server/fraud_ring_investigator_arena_environment.py`
+- `server/simulator.py`
 
-- Fraud cases emphasize prevented loss, suspect quality, intervention precision, and correct final disposition.
-- Benign cases emphasize correct clearance, low benign harm, low false suspicion, and low investigation cost.
+## Observation Surface
 
-This makes the benchmark care about false positives, missed fraud, and action cost at the same time.
+Each observation contains:
 
-## Task Tracks
+- `task_id`, `task_name`, `case_id`
+- `step_count`, `steps_remaining`
+- `time_tick`, `time_ticks_remaining`
+- `investigation_cost_used`
+- `seed_alert`
+- `visible_entities`
+- `visible_links`
+- `visible_payouts`
+- `active_interventions`
+- `blocked_value_realized`, `escaped_value_realized`
+- `last_action_result`
 
-| Track ID | Canonical track | Design intent | Current baseline read |
-| --- | --- | --- | --- |
-| `easy` | `easy_single_ring_v1` | compact single-ring cases with clearer payout pressure | aggressive early intervention is very strong on fraud cases |
-| `medium` | `medium_confounded_ring_v1` | more confounders and noisier local structure | still favors fast intervention, but benign penalties remain real |
-| `hard` | `hard_reserve_ring_v1` | reserve-route and more balanced fraud/benign mix | punishes reckless intervention enough to change the ranking |
+## Reward and Scoring
+
+Episode score is normalized to `[0, 1]`.
+
+- Fraud cases reward prevented loss, good suspect identification, and correct escalation.
+- Benign cases reward low intervention harm, low false suspicion, and correct clearance.
+- Investigation actions apply step costs.
+- Invalid actions are penalized.
+
+This creates the intended tradeoff between false positives, missed fraud, and investigation cost.
+
+## Deterministic Benchmark Baselines
+
+The repo includes deterministic heuristic baselines in `baselines/heuristics.py` and a deterministic evaluator in `eval.py`.
+
+Current deterministic benchmark snapshot, 25 episodes per policy-track:
+
+| Track | `seed_only` | `fixed_sequence` | `freeze_first` |
+| --- | ---: | ---: | ---: |
+| `easy_single_ring_v1` | 0.3299 | 0.5758 | 0.7265 |
+| `medium_confounded_ring_v1` | 0.3776 | 0.6144 | 0.6567 |
+| `hard_reserve_ring_v1` | 0.5335 | 0.4201 | 0.4195 |
+
+Run the deterministic evaluator:
+
+```bash
+python3 eval.py --policy all --task-name all --episodes 25 --seed-start 85000
+```
+
+## Reproducibility
+
+The environment rollout is deterministic for a fixed task ID and seed.
+
+- `inference.py` uses `FRAUD_RING_ARENA_SEED=123` by default.
+- `eval.py` uses `--seed-start 85000` by default.
+- `inference.py` uses `temperature=0.0` for model calls.
+
+Important caveat: remote hosted LLM outputs can still vary slightly across runs even with the same prompt and temperature. The environment itself remains deterministic for the same seed.
+
+## LLM Submission Inference
+
+The root `inference.py` is the submission script.
+
+- It uses the OpenAI client.
+- It supports `API_KEY`, `OPENAI_API_KEY`, and `HF_TOKEN`.
+- It uses `API_BASE_URL` with default `https://router.huggingface.co/v1`.
+- It runs the three submission tasks `easy`, `medium`, and `hard` by default.
+
+Recommended submission-style local command:
+
+```bash
+OPENAI_API_KEY="$HF_TOKEN" \
+API_BASE_URL="https://router.huggingface.co/v1" \
+MODEL_NAME="Qwen/Qwen2.5-7B-Instruct" \
+ENV_BASE_URL="http://127.0.0.1:7860" \
+FRAUD_RING_ARENA_SEED=123 \
+python3 inference.py
+```
+
+If you want to run a single task:
+
+```bash
+OPENAI_API_KEY="$HF_TOKEN" \
+API_BASE_URL="https://router.huggingface.co/v1" \
+MODEL_NAME="Qwen/Qwen2.5-7B-Instruct" \
+ENV_BASE_URL="http://127.0.0.1:7860" \
+FRAUD_RING_ARENA_TASK_ID=easy \
+FRAUD_RING_ARENA_SEED=123 \
+python3 inference.py
+```
 
 ## Local Development
 
-Start the environment server:
+Start the server:
 
 ```bash
 python3 -m server.app
 ```
 
-Run the full baseline matrix and save JSON output:
+Validate the environment contract:
 
 ```bash
-python3 eval.py --policy all --task-name all --episodes 25 --output outputs/baseline_eval_raw.txt
+openenv validate
 ```
 
-Run the root inference script against a local server:
-
-```bash
-API_BASE_URL=https://router.huggingface.co/v1 \
-API_KEY=$HF_TOKEN \
-ENV_BASE_URL=http://localhost:7860 \
-python3 inference.py
-```
-
-For hackathon submission, `inference.py` now requires the injected `API_KEY` and `API_BASE_URL` and will not silently fall back to heuristic actions if proxy LLM calls are unavailable.
-
-By default, `inference.py` runs the three submission-facing tasks `easy`, `medium`, and `hard` sequentially. The legacy aliases `task1`, `task2`, and `task3` still work. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
-
-## Docker And Space Usage
-
-Build the local image:
+Build the Docker image:
 
 ```bash
 docker build -t fraud-ring-investigator-arena-local .
 ```
 
-Run the inference script against the local Docker image:
-
-```bash
-API_BASE_URL=https://router.huggingface.co/v1 \
-API_KEY=$HF_TOKEN \
-IMAGE_NAME=fraud-ring-investigator-arena-local \
-python3 inference.py
-```
-
-The benchmark has already been deployed as a Hugging Face Space and passed the provided submission prevalidation flow.
-
-## Validation Status
-
-The current repo state has already passed:
-
-- local Docker image build
-- root `inference.py` against the local Docker image
-- `openenv validate`
-- Hugging Face Space deployment
-- submission prevalidation for live `/reset`, Docker build, and `openenv validate`
-
-## Baseline Evaluation Snapshot
-
-Overall episode score, 25 seeded episodes per policy-track:
-
-| Track | `seed_only` | `fixed_sequence` | `freeze_first` |
-| --- | ---: | ---: | ---: |
-| `easy_single_ring_v1` | 0.3307 | 0.6235 | 0.7483 |
-| `medium_confounded_ring_v1` | 0.3896 | 0.5995 | 0.6798 |
-| `hard_reserve_ring_v1` | 0.5444 | 0.4573 | 0.4403 |
-
-That table is intentionally not the whole story. The truth-stratified view matters:
-
-- `freeze_first` is strongest on fraud-only slices for easy and medium.
-- `fixed_sequence` slightly beats `freeze_first` on the hard fraud-only slice.
-- `seed_only` is almost perfect on benign-only slices but poor on fraud-only slices.
-
-See [baseline_eval_summary.md](outputs/baseline_eval_summary.md) and [benchmark_sanity_check.md](outputs/benchmark_sanity_check.md) for the full benchmark readout.
-
-## Planned Training Story
-
-The intended first training pass is straightforward:
-
-- train against the current benchmark without mechanic changes
-- report overall, fraud-only, and benign-only slices together
-- compare learned policies against `seed_only`, `fixed_sequence`, and `freeze_first`
-- only consider tiny benchmark adjustments after training if the learned policy confirms the same easy/medium intervention dominance pattern
-
 ## OpenEnv Files
 
-- `app.py`
 - `openenv.yaml`
-- `pyproject.toml`
+- `app.py`
 - `models.py`
 - `client.py`
 - `server/app.py`
+- `server/environment.py`
+- `server/fraud_ring_investigator_arena_environment.py`
 - `inference.py`
 
-## Locked V1 Spec
+## Submission Checklist
 
-The locked V1 behavior contract lives in:
+Before final submission, do these in order:
 
-- `notes/16_env_spec_v1.md`
-- `notes/17_action_space_v1.md`
-- `notes/18_hidden_state_v1.md`
-- `notes/19_reward_and_outcomes_v1.md`
-- `notes/20_episode_generator_v1.md`
-- `notes/21_baselines_and_training_v1.md`
-- `notes/22_eval_plan_v1.md`
+1. Run `openenv validate`.
+2. Confirm the Space responds to `POST /reset`.
+3. Run `python3 eval.py --policy all --task-name all --episodes 25 --seed-start 85000`.
+4. Run one real LLM inference pass with fixed seed `123` and record the three `[END]` scores.
+5. Confirm the submitted `inference.py` uses the OpenAI client and the injected proxy env vars.
+6. Rebuild Docker once after the last code change.
+7. Submit only after the repo and deployed Space are in sync.

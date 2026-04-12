@@ -19,9 +19,9 @@ except ImportError:
     )
 
 TASKS: dict[str, dict[str, Any]] = {task["id"]: dict(task) for task in ROOT_TASKS}
-TASKS["easy"]["baseline_score"] = 0.6235
-TASKS["medium"]["baseline_score"] = 0.5995
-TASKS["hard"]["baseline_score"] = 0.4573
+TASKS["easy"]["baseline_score"] = 0.5758
+TASKS["medium"]["baseline_score"] = 0.6144
+TASKS["hard"]["baseline_score"] = 0.4201
 
 TRACK_TO_TASK_ID = {task["track_id"]: task_id for task_id, task in TASKS.items()}
 
