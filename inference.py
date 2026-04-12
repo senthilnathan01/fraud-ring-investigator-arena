@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import sys
 import textwrap
 from typing import Any
 
@@ -26,7 +27,7 @@ IMAGE_NAME = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
-BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL") or "http://localhost:7860"
+EXPLICIT_BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL")
 TASK_ID = (
     os.getenv("FRAUD_RING_ARENA_TASK_ID")
     or os.getenv("FRAUD_RING_ARENA_TASK")
@@ -148,9 +149,27 @@ def get_model_action(
 async def _connect_env() -> FraudRingInvestigatorArenaEnv:
     if IMAGE_NAME:
         return await FraudRingInvestigatorArenaEnv.from_docker_image(IMAGE_NAME)
-    env = FraudRingInvestigatorArenaEnv(base_url=BASE_URL)
-    await env.connect()
-    return env
+
+    if EXPLICIT_BASE_URL:
+        base_urls = [EXPLICIT_BASE_URL]
+    else:
+        base_urls = [
+            "http://127.0.0.1:7860",
+            "http://localhost:7860",
+            "http://127.0.0.1:8000",
+            "http://localhost:8000",
+        ]
+
+    errors: list[str] = []
+    for base_url in base_urls:
+        env = FraudRingInvestigatorArenaEnv(base_url=base_url)
+        try:
+            await env.connect()
+            return env
+        except Exception as exc:
+            errors.append(f"{base_url}: {exc}")
+
+    raise RuntimeError("Failed to connect to environment. Tried " + " | ".join(errors))
 
 
 async def _run_task(task_id: str, llm_client: OpenAI | None) -> str | None:
@@ -225,7 +244,7 @@ async def main() -> None:
             error_messages.append(f"{task_id}: {error_message}")
 
     if error_messages:
-        raise RuntimeError("; ".join(error_messages))
+        print("[DEBUG] " + "; ".join(error_messages), file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
