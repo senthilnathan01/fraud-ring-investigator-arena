@@ -98,10 +98,13 @@ python3 eval.py --policy all --task-name all --episodes 25 --output outputs/base
 Run the root inference script against a local server:
 
 ```bash
-ENV_BASE_URL=http://localhost:7860 python3 inference.py
+API_BASE_URL=https://router.huggingface.co/v1 \
+API_KEY=$HF_TOKEN \
+ENV_BASE_URL=http://localhost:7860 \
+python3 inference.py
 ```
 
-For hackathon submission, `inference.py` now prioritizes the injected `API_KEY` and `API_BASE_URL`. `HF_TOKEN` is only treated as a local fallback when `API_KEY` is absent.
+For hackathon submission, `inference.py` now requires the injected `API_KEY` and `API_BASE_URL` and will not silently fall back to heuristic actions if proxy LLM calls are unavailable.
 
 By default, `inference.py` runs the three submission-facing tasks `easy`, `medium`, and `hard` sequentially. The legacy aliases `task1`, `task2`, and `task3` still work. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
 
@@ -116,7 +119,10 @@ docker build -t fraud-ring-investigator-arena-local .
 Run the inference script against the local Docker image:
 
 ```bash
-IMAGE_NAME=fraud-ring-investigator-arena-local python3 inference.py
+API_BASE_URL=https://router.huggingface.co/v1 \
+API_KEY=$HF_TOKEN \
+IMAGE_NAME=fraud-ring-investigator-arena-local \
+python3 inference.py
 ```
 
 The benchmark has already been deployed as a Hugging Face Space and passed the provided submission prevalidation flow.

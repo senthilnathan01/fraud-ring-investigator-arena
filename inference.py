@@ -19,13 +19,12 @@ from typing import Any
 
 from openai import OpenAI
 
-from baselines.heuristics import FixedSequenceInvestigatorPolicy
 from client import FraudRingInvestigatorArenaEnv
 from models import FraudRingInvestigatorArenaAction
 
 IMAGE_NAME = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
-API_KEY = os.getenv("API_KEY") or os.getenv("HF_TOKEN")
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
+API_KEY = os.getenv("API_KEY")
+API_BASE_URL = os.getenv("API_BASE_URL")
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 EXPLICIT_BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL")
 TASK_ID = (
@@ -38,6 +37,7 @@ MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.50"))
 SEED = os.getenv("FRAUD_RING_ARENA_SEED")
 DEFAULT_TASK_IDS = ["easy", "medium", "hard"]
+LLM_CALL_COUNT = 0
 
 SYSTEM_PROMPT = textwrap.dedent(
     """
@@ -94,13 +94,6 @@ def _extract_json(text: str) -> dict[str, Any] | None:
         return None
 
 
-def _fallback_action(
-    policy: FixedSequenceInvestigatorPolicy,
-    observation,
-) -> FraudRingInvestigatorArenaAction:
-    return policy.act(observation)
-
-
 def build_user_prompt(observation, history: list[str]) -> str:
     observation_json = json.dumps(observation.model_dump(mode="json"), separators=(",", ":"))
     history_text = "\n".join(history[-6:]) if history else "None"
@@ -118,32 +111,44 @@ def build_user_prompt(observation, history: list[str]) -> str:
 
 
 def get_model_action(
-    client: OpenAI | None,
+    client: OpenAI,
     observation,
     history: list[str],
-    fallback_policy: FixedSequenceInvestigatorPolicy,
 ) -> FraudRingInvestigatorArenaAction:
-    if client is None:
-        return _fallback_action(fallback_policy, observation)
+    global LLM_CALL_COUNT
 
-    try:
-        completion = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_user_prompt(observation, history)},
-            ],
-            temperature=0.0,
-            max_tokens=250,
-            stream=False,
+    completion = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": build_user_prompt(observation, history)},
+        ],
+        temperature=0.0,
+        max_tokens=250,
+        stream=False,
+    )
+    LLM_CALL_COUNT += 1
+    text = (completion.choices[0].message.content or "").strip()
+    payload = _extract_json(text)
+    if payload is None:
+        raise RuntimeError(f"LLM response did not contain a valid JSON action: {text[:200]}")
+    return FraudRingInvestigatorArenaAction(**payload)
+
+
+def _require_proxy_client() -> OpenAI:
+    missing = [
+        name
+        for name, value in (
+            ("API_BASE_URL", API_BASE_URL),
+            ("API_KEY", API_KEY),
         )
-        text = (completion.choices[0].message.content or "").strip()
-        payload = _extract_json(text)
-        if payload is None:
-            return _fallback_action(fallback_policy, observation)
-        return FraudRingInvestigatorArenaAction(**payload)
-    except Exception:
-        return _fallback_action(fallback_policy, observation)
+        if not value
+    ]
+    if missing:
+        raise RuntimeError(
+            "Missing required LLM proxy environment variables: " + ", ".join(missing)
+        )
+    return OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
 
 async def _connect_env() -> FraudRingInvestigatorArenaEnv:
@@ -170,9 +175,8 @@ async def _connect_env() -> FraudRingInvestigatorArenaEnv:
     raise RuntimeError("Failed to connect to environment. Tried " + " | ".join(errors))
 
 
-async def _run_task(task_id: str, llm_client: OpenAI | None) -> str | None:
+async def _run_task(task_id: str, llm_client: OpenAI) -> str | None:
     env: FraudRingInvestigatorArenaEnv | None = None
-    fallback_policy = FixedSequenceInvestigatorPolicy()
 
     rewards: list[float] = []
     history: list[str] = []
@@ -194,7 +198,7 @@ async def _run_task(task_id: str, llm_client: OpenAI | None) -> str | None:
             if result.done:
                 break
 
-            action = get_model_action(llm_client, result.observation, history, fallback_policy)
+            action = get_model_action(llm_client, result.observation, history)
             result = await env.step(action)
             reward = float(result.reward or 0.0)
             done = bool(result.done)
@@ -233,13 +237,16 @@ def _task_ids_to_run() -> list[str]:
 
 
 async def main() -> None:
-    llm_client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY) if API_KEY else None
+    llm_client = _require_proxy_client()
     error_messages: list[str] = []
 
     for task_id in _task_ids_to_run():
         error_message = await _run_task(task_id, llm_client)
         if error_message is not None:
             error_messages.append(f"{task_id}: {error_message}")
+
+    if LLM_CALL_COUNT == 0:
+        raise RuntimeError("No successful LLM proxy calls were completed.")
 
     if error_messages:
         print("[DEBUG] " + "; ".join(error_messages), file=sys.stderr, flush=True)
