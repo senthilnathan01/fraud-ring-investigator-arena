@@ -4,7 +4,7 @@ version: 0.1.0
 description: Sequential fraud investigation benchmark with three seeded procedural task tracks.
 type: space
 runtime: fastapi
-app: app:app
+app: fraud_ring_investigator_arena.server.app:app
 port: 8000
 tags: [fraud, aml, reinforcement-learning, investigation, graph]
 endpoints:
@@ -17,46 +17,49 @@ reward:
 observation_space:
   type: object
   fields:
-    - task_id: string
-    - task_name: string
-    - case_id: string
-    - step_count: integer
-    - time_tick: integer
-    - seed_alert: object
-    - visible_entities: list
-    - visible_links: list
-    - visible_payouts: list
-    - done: boolean
+    task_id: string
+    task_name: string
+    case_id: string
+    step_count: integer
+    time_tick: integer
+    seed_alert: object
+    visible_entities: list
+    visible_links: list
+    visible_payouts: list
+    done: boolean
 action_space:
   type: object
   fields:
-    - action_type: string
-    - entity_id: string|null
-    - payout_id: string|null
-    - relation_type: string|null
-    - direction: string|null
-    - depth: integer|null
-    - decision: string|null
-    - suspect_entity_ids: list
+    action_type: string
+    entity_id: string|null
+    payout_id: string|null
+    relation_type: string|null
+    direction: string|null
+    depth: integer|null
+    decision: string|null
+    suspect_entity_ids: list
 tasks:
   - id: easy
     name: Easy Single Ring V1
     difficulty: easy
-    description: Compact single-ring cases with clearer payout pressure and fewer benign confounders.
+    description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
+    max_steps: 8
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this easy task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm and unnecessary investigation cost."
   - id: medium
     name: Medium Confounded Ring V1
     difficulty: medium
-    description: Noisier local cases with additional benign confounders and one or two payout waves.
+    description: "Noisier local cases with additional benign confounders and one or two payout waves."
+    max_steps: 10
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this medium task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, reckless intervention, and unnecessary investigation cost."
   - id: hard
     name: Hard Reserve Ring V1
     difficulty: hard
-    description: Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior.
+    description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
+    max_steps: 12
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this hard task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, premature intervention, reserve-route misses, and unnecessary investigation cost."
