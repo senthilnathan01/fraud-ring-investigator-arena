@@ -6,10 +6,15 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
+entry_point: server.environment:FraudRingInvestigatorArenaEnvironment
 endpoints:
   reset: /reset
   step: /step
   state: /state
+  tasks: /tasks
+  grader: /grader
+  metadata: /metadata
+  health: /health
 reward:
   min: 0.0
   max: 1.0
@@ -44,24 +49,24 @@ tasks:
     description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
     max_steps: 8
     weight: 0.3
-    grader:
-      type: llm
-      prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this easy task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm and unnecessary investigation cost."
+    grader: "graders:grade_easy"
+    graders:
+      - "graders:grade_easy"
   - id: medium
     name: Medium Confounded Ring V1
     difficulty: medium
     description: "Noisier local cases with additional benign confounders and one or two payout waves."
     max_steps: 10
     weight: 0.5
-    grader:
-      type: llm
-      prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this medium task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, reckless intervention, and unnecessary investigation cost."
+    grader: "graders:grade_medium"
+    graders:
+      - "graders:grade_medium"
   - id: hard
     name: Hard Reserve Ring V1
     difficulty: hard
     description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
     max_steps: 12
     weight: 1.0
-    grader:
-      type: llm
-      prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this hard task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, premature intervention, reserve-route misses, and unnecessary investigation cost."
+    grader: "graders:grade_hard"
+    graders:
+      - "graders:grade_hard"

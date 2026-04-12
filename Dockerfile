@@ -7,7 +7,7 @@ ENV TASK_ID=easy
 
 WORKDIR /app
 
-COPY pyproject.toml README.md openenv.yaml __init__.py app.py client.py models.py eval.py inference.py /app/
+COPY pyproject.toml README.md openenv.yaml __init__.py app.py client.py models.py eval.py inference.py graders.py tasks.py /app/
 COPY baselines /app/baselines
 COPY server /app/server
 
