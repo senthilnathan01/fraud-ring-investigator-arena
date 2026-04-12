@@ -24,7 +24,11 @@ from client import FraudRingInvestigatorArenaEnv
 from models import FraudRingInvestigatorArenaAction
 
 IMAGE_NAME = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
-API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
+API_KEY = (
+    os.getenv("API_KEY")
+    or os.getenv("OPENAI_API_KEY")
+    or os.getenv("HF_TOKEN")
+)
 API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 EXPLICIT_BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL")
@@ -248,7 +252,9 @@ async def main() -> None:
     error_messages: list[str] = []
 
     if not API_KEY:
-        error_messages.append("No HF_TOKEN/API_KEY provided; using placeholder key for request attempts.")
+        error_messages.append(
+            "No API_KEY/OPENAI_API_KEY/HF_TOKEN provided; using placeholder key for request attempts."
+        )
 
     for task_id in _task_ids_to_run():
         error_message = await _run_task(task_id, llm_client)
