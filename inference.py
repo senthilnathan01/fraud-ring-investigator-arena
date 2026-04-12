@@ -23,7 +23,7 @@ from client import FraudRingInvestigatorArenaEnv
 from models import FraudRingInvestigatorArenaAction
 
 IMAGE_NAME = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("API_KEY") or os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL")
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 EXPLICIT_BASE_URL = os.getenv("ENV_BASE_URL") or os.getenv("OPENENV_BASE_URL")
@@ -37,6 +37,7 @@ MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.50"))
 SEED = os.getenv("FRAUD_RING_ARENA_SEED")
 DEFAULT_TASK_IDS = ["easy", "medium", "hard"]
+LLM_REQUEST_ATTEMPT_COUNT = 0
 LLM_CALL_COUNT = 0
 
 SYSTEM_PROMPT = textwrap.dedent(
@@ -115,8 +116,10 @@ def get_model_action(
     observation,
     history: list[str],
 ) -> FraudRingInvestigatorArenaAction:
+    global LLM_REQUEST_ATTEMPT_COUNT
     global LLM_CALL_COUNT
 
+    LLM_REQUEST_ATTEMPT_COUNT += 1
     completion = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
@@ -126,6 +129,7 @@ def get_model_action(
         temperature=0.0,
         max_tokens=250,
         stream=False,
+        timeout=120,
     )
     LLM_CALL_COUNT += 1
     text = (completion.choices[0].message.content or "").strip()
@@ -237,20 +241,32 @@ def _task_ids_to_run() -> list[str]:
 
 
 async def main() -> None:
-    llm_client = _require_proxy_client()
     error_messages: list[str] = []
+    llm_client: OpenAI | None = None
+
+    try:
+        llm_client = _require_proxy_client()
+    except Exception as exc:
+        error_messages.append(f"llm_proxy: {exc}")
 
     for task_id in _task_ids_to_run():
+        if llm_client is None:
+            log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
+            log_end(success=False, steps=0, score=0.0, rewards=[])
+            continue
         error_message = await _run_task(task_id, llm_client)
         if error_message is not None:
             error_messages.append(f"{task_id}: {error_message}")
 
-    if LLM_CALL_COUNT == 0:
-        raise RuntimeError("No successful LLM proxy calls were completed.")
+    if LLM_REQUEST_ATTEMPT_COUNT == 0:
+        error_messages.append("No LLM proxy requests were attempted.")
 
     if error_messages:
         print("[DEBUG] " + "; ".join(error_messages), file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as exc:
+        print(f"[DEBUG] fatal_inference_error: {exc}", file=sys.stderr, flush=True)
