@@ -112,7 +112,7 @@ def list_tasks() -> dict[str, object]:
     }
 
 
-def main(host: str = "0.0.0.0", port: int = 7860) -> None:
+def main(host: str = "0.0.0.0", port: int = 8000) -> None:
     import uvicorn
 
     uvicorn.run(app, host=host, port=port)

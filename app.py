@@ -6,7 +6,7 @@ from server.app import main as _main
 app = _app
 
 
-def main(host: str = "0.0.0.0", port: int = 7860) -> None:
+def main(host: str = "0.0.0.0", port: int = 8000) -> None:
     _main(host=host, port=port)
 
 

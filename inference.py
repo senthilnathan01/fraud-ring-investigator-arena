@@ -154,10 +154,10 @@ async def _connect_env() -> FraudRingInvestigatorArenaEnv:
         base_urls = [EXPLICIT_BASE_URL]
     else:
         base_urls = [
-            "http://127.0.0.1:7860",
-            "http://localhost:7860",
             "http://127.0.0.1:8000",
             "http://localhost:8000",
+            "http://127.0.0.1:7860",
+            "http://localhost:7860",
         ]
 
     errors: list[str] = []

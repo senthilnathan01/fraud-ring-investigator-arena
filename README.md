@@ -2,7 +2,7 @@
 title: Fraud Ring Investigator Arena Environment Server
 emoji: "🕵️"
 sdk: docker
-app_port: 7860
+app_port: 8000
 base_path: /web
 tags:
   - openenv
@@ -98,7 +98,7 @@ python3 eval.py --policy all --task-name all --episodes 25 --output outputs/base
 Run the root inference script against a local server:
 
 ```bash
-ENV_BASE_URL=http://localhost:7860 python3 inference.py
+ENV_BASE_URL=http://localhost:8000 python3 inference.py
 ```
 
 By default, `inference.py` runs the three submission-facing tasks `easy`, `medium`, and `hard` sequentially. The legacy aliases `task1`, `task2`, and `task3` still work. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
