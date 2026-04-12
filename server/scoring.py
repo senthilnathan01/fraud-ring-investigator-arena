@@ -12,6 +12,10 @@ def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(value, upper))
 
 
+def _clamp_strict_score(value: float) -> float:
+    return max(0.01, min(0.99, float(value)))
+
+
 def _f1_score(predicted: set[str], truth: set[str]) -> float:
     if not predicted and not truth:
         return 1.0
@@ -106,7 +110,7 @@ def compute_terminal_metrics(world: HiddenWorld) -> TerminalMetrics:
     )
 
     if world.case_truth == "fraud":
-        episode_score = _clamp(
+        episode_score = _clamp_strict_score(
             0.55 * prevented_loss_ratio
             + 0.20 * suspect_f1
             + 0.10 * intervention_precision
@@ -115,7 +119,7 @@ def compute_terminal_metrics(world: HiddenWorld) -> TerminalMetrics:
             - 0.20 * benign_harm_ratio
         )
     else:
-        episode_score = _clamp(
+        episode_score = _clamp_strict_score(
             0.55 * disposition_correct
             + 0.20 * (1.0 - benign_harm_ratio)
             + 0.15 * (1.0 - false_suspect_ratio)

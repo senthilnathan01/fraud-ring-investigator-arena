@@ -22,6 +22,17 @@ except ImportError:
     from server.graders import GRADERS
 
 TASK_MANIFEST = export_task_manifest()
+TASK_ID_ALIASES: dict[str, str] = {
+    "task1": "easy",
+    "task2": "medium",
+    "task3": "hard",
+}
+for task in TASK_MANIFEST:
+    task_id = str(task["id"])
+    TASK_ID_ALIASES[task_id] = task_id
+    track_id = task.get("track_id")
+    if track_id:
+        TASK_ID_ALIASES[str(track_id)] = task_id
 
 app = create_app(
     FraudRingInvestigatorArenaEnvironment,
@@ -126,17 +137,18 @@ def list_graders() -> dict[str, object]:
 
 @app.post("/grader")
 def grade_episode(payload: dict[str, object] = Body(default_factory=dict)) -> dict[str, object]:
-    task_id = str(payload.get("task_id") or "")
+    requested_task_id = str(payload.get("task_id") or "")
+    task_id = TASK_ID_ALIASES.get(requested_task_id, requested_task_id)
     state = payload.get("state") or {}
     reward = payload.get("reward")
 
     grader_cls = GRADERS.get(task_id)
     if grader_cls is None:
-        return {"task_id": task_id, "score": 0.0, "error": "unknown_task"}
+        return {"task_id": requested_task_id, "score": 0.5, "error": "unknown_task"}
 
     grader = grader_cls()
     score = float(grader.grade(state, reward if isinstance(reward, (int, float)) else 0.0))
-    return {"task_id": task_id, "score": score}
+    return {"task_id": requested_task_id, "score": score}
 
 
 def main(host: str = "0.0.0.0", port: int = 7860) -> None:
