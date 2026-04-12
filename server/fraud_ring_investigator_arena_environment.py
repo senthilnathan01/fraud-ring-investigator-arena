@@ -57,6 +57,9 @@ BASE_ACTION_PENALTIES: dict[str, float] = {
 }
 
 TASK_ID_ALIASES: dict[str, str] = {
+    "easy": "easy_single_ring_v1",
+    "medium": "medium_confounded_ring_v1",
+    "hard": "hard_reserve_ring_v1",
     "task1": "easy_single_ring_v1",
     "task2": "medium_confounded_ring_v1",
     "task3": "hard_reserve_ring_v1",
@@ -66,7 +69,7 @@ TRACK_ID_TO_TASK_ALIAS: dict[str, str] = {
     track_id: task_id for task_id, track_id in TASK_ID_ALIASES.items()
 }
 
-DEFAULT_TASK_ID = "task1"
+DEFAULT_TASK_ID = "easy"
 
 def resolve_task_name(task_id: str | None) -> str | None:
     if task_id is None:

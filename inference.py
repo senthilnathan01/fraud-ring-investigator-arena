@@ -36,7 +36,7 @@ BENCHMARK = "fraud_ring_investigator_arena"
 MAX_STEPS = int(os.getenv("MAX_STEPS", "12"))
 SUCCESS_SCORE_THRESHOLD = float(os.getenv("SUCCESS_SCORE_THRESHOLD", "0.50"))
 SEED = os.getenv("FRAUD_RING_ARENA_SEED")
-DEFAULT_TASK_IDS = ["task1", "task2", "task3"]
+DEFAULT_TASK_IDS = ["easy", "medium", "hard"]
 
 SYSTEM_PROMPT = textwrap.dedent(
     """

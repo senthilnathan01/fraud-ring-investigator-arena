@@ -16,9 +16,9 @@ Fraud Ring Investigator Arena is a compact OpenEnv benchmark for sequential frau
 
 V1 is a single-case benchmark with three procedural task tracks. The submission-facing task IDs are:
 
-- `task1` → `easy_single_ring_v1`
-- `task2` → `medium_confounded_ring_v1`
-- `task3` → `hard_reserve_ring_v1`
+- `easy` → `easy_single_ring_v1`
+- `medium` → `medium_confounded_ring_v1`
+- `hard` → `hard_reserve_ring_v1`
 
 Each case mixes a seed alert, a partially visible entity/link/payout slice, and a hidden fraud or benign lookalike structure.
 
@@ -77,9 +77,9 @@ This makes the benchmark care about false positives, missed fraud, and action co
 
 | Track ID | Canonical track | Design intent | Current baseline read |
 | --- | --- | --- | --- |
-| `task1` | `easy_single_ring_v1` | compact single-ring cases with clearer payout pressure | aggressive early intervention is very strong on fraud cases |
-| `task2` | `medium_confounded_ring_v1` | more confounders and noisier local structure | still favors fast intervention, but benign penalties remain real |
-| `task3` | `hard_reserve_ring_v1` | reserve-route and more balanced fraud/benign mix | punishes reckless intervention enough to change the ranking |
+| `easy` | `easy_single_ring_v1` | compact single-ring cases with clearer payout pressure | aggressive early intervention is very strong on fraud cases |
+| `medium` | `medium_confounded_ring_v1` | more confounders and noisier local structure | still favors fast intervention, but benign penalties remain real |
+| `hard` | `hard_reserve_ring_v1` | reserve-route and more balanced fraud/benign mix | punishes reckless intervention enough to change the ranking |
 
 ## Local Development
 
@@ -101,7 +101,7 @@ Run the root inference script against a local server:
 ENV_BASE_URL=http://localhost:8000 python3 inference.py
 ```
 
-By default, `inference.py` runs the three submission-facing tasks `task1`, `task2`, and `task3` sequentially. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
+By default, `inference.py` runs the three submission-facing tasks `easy`, `medium`, and `hard` sequentially. The legacy aliases `task1`, `task2`, and `task3` still work. To force a single task run, set `FRAUD_RING_ARENA_TASK_ID`, `FRAUD_RING_ARENA_TASK`, or `TASK_ID`.
 
 ## Docker And Space Usage
 
@@ -162,7 +162,6 @@ The intended first training pass is straightforward:
 - `pyproject.toml`
 - `models.py`
 - `client.py`
-- `server/graders.py`
 - `server/app.py`
 - `inference.py`
 
