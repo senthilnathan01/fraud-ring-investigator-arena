@@ -1,30 +1,54 @@
 spec_version: 1
 name: fraud_ring_investigator_arena
+version: "0.1.0"
+description: "Sequential fraud investigation benchmark with three seeded procedural task tracks."
 type: space
 runtime: fastapi
 app: server.app:app
 port: 7860
+entry_point: server.environment:FraudRingInvestigatorArenaEnvironment
 
-description: "Sequential fraud investigation benchmark with three seeded procedural task tracks."
+endpoints:
+  reset: /reset
+  step: /step
+  state: /state
+  tasks: /tasks
+  grader: /grader
+  metadata: /metadata
+  health: /health
 
-reward_range: [0.0, 1.0]
+reward:
+  min: 0.0
+  max: 1.0
 
-tasks:
-  - id: easy
-    name: Easy Single Ring V1
-    difficulty: easy
-    grader: server.graders:EasyGrader
-  - id: medium
-    name: Medium Confounded Ring V1
-    difficulty: medium
-    grader: server.graders:MediumGrader
-  - id: hard
-    name: Hard Reserve Ring V1
-    difficulty: hard
-    grader: server.graders:HardGrader
+observation_space:
+  type: object
+  description: Fraud investigation observation surface exposed after reset and step.
+  properties:
+    task_id:
+      type: string
+    task_name:
+      type: string
+    case_id:
+      type: string
+    step_count:
+      type: integer
+    time_tick:
+      type: integer
+    seed_alert:
+      type: object
+    visible_entities:
+      type: array
+    visible_links:
+      type: array
+    visible_payouts:
+      type: array
+    done:
+      type: boolean
 
 action_space:
   type: object
+  description: Typed investigation and intervention actions available to the agent.
   properties:
     action_type:
       type: string
@@ -43,18 +67,24 @@ action_space:
     suspect_entity_ids:
       type: array
 
-observation_space:
-  type: object
-  properties:
-    task_id:
-      type: string
-    task_name:
-      type: string
-    case_id:
-      type: string
-    step_count:
-      type: integer
-    time_tick:
-      type: integer
-    done:
-      type: boolean
+tasks:
+  - id: easy
+    name: Easy Single Ring V1
+    difficulty: easy
+    description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
+    max_steps: 8
+    grader: server.graders:EasyGrader
+
+  - id: medium
+    name: Medium Confounded Ring V1
+    difficulty: medium
+    description: "Noisier local cases with additional benign confounders and one or two payout waves."
+    max_steps: 10
+    grader: server.graders:MediumGrader
+
+  - id: hard
+    name: Hard Reserve Ring V1
+    difficulty: hard
+    description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
+    max_steps: 12
+    grader: server.graders:HardGrader
