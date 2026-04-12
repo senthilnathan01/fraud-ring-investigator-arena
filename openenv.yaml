@@ -1,12 +1,11 @@
 spec_version: 1
 name: fraud_ring_investigator_arena
-version: 0.1.0
-description: Sequential fraud investigation benchmark with three seeded procedural task tracks.
+version: "0.1.0"
+description: "Sequential fraud investigation benchmark with three seeded procedural task tracks."
 type: space
 runtime: fastapi
-app: fraud_ring_investigator_arena.server.app:app
+app: server.app:app
 port: 8000
-tags: [fraud, aml, reinforcement-learning, investigation, graph]
 endpoints:
   reset: /reset
   step: /step
@@ -44,6 +43,7 @@ tasks:
     difficulty: easy
     description: "Compact single-ring cases with clearer payout pressure and fewer benign confounders."
     max_steps: 8
+    weight: 0.3
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this easy task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm and unnecessary investigation cost."
@@ -52,6 +52,7 @@ tasks:
     difficulty: medium
     description: "Noisier local cases with additional benign confounders and one or two payout waves."
     max_steps: 10
+    weight: 0.5
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this medium task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, reckless intervention, and unnecessary investigation cost."
@@ -60,6 +61,7 @@ tasks:
     difficulty: hard
     description: "Harder cases with deeper hidden structure, more confounders, and possible reserve-route behavior."
     max_steps: 12
+    weight: 1.0
     grader:
       type: llm
       prompt_template: "Score the fraud investigation from 0.0 to 1.0 for this hard task. Reward prevented fraud loss, correct suspect identification, and the correct final clear-or-escalate disposition. Penalize benign harm, premature intervention, reserve-route misses, and unnecessary investigation cost."
