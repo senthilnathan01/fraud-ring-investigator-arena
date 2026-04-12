@@ -15,11 +15,11 @@ except Exception as exc:  # pragma: no cover
 try:
     from ..models import FraudRingInvestigatorArenaAction, FraudRingInvestigatorArenaObservation
     from .environment import FraudRingInvestigatorArenaEnvironment, export_task_manifest
-    from ..graders import GRADERS
+    from .graders import GRADERS
 except ImportError:
     from models import FraudRingInvestigatorArenaAction, FraudRingInvestigatorArenaObservation
     from server.environment import FraudRingInvestigatorArenaEnvironment, export_task_manifest
-    from graders import GRADERS
+    from server.graders import GRADERS
 
 TASK_MANIFEST = export_task_manifest()
 
@@ -120,7 +120,7 @@ def list_graders() -> dict[str, object]:
     return {
         "environment": "fraud_ring_investigator_arena",
         "grader_count": len(GRADERS),
-        "graders": sorted(GRADERS.keys()),
+        "graders": sorted(f"server.graders:{grader.__name__}" for grader in GRADERS.values()),
     }
 
 
@@ -130,11 +130,12 @@ def grade_episode(payload: dict[str, object] = Body(default_factory=dict)) -> di
     state = payload.get("state") or {}
     reward = payload.get("reward")
 
-    grader = GRADERS.get(task_id)
-    if grader is None:
+    grader_cls = GRADERS.get(task_id)
+    if grader_cls is None:
         return {"task_id": task_id, "score": 0.0, "error": "unknown_task"}
 
-    score = float(grader(state, reward if isinstance(reward, (int, float)) else 0.0))
+    grader = grader_cls()
+    score = float(grader.grade(state, reward if isinstance(reward, (int, float)) else 0.0))
     return {"task_id": task_id, "score": score}
 
 
