@@ -4,16 +4,16 @@ version: 0.1.0
 description: Sequential fraud investigation benchmark with three seeded procedural task tracks.
 type: space
 runtime: fastapi
-app: server.app:app
+app: app:app
 port: 8000
-reward_range: [0.0, 1.0]
 tags: [fraud, aml, reinforcement-learning, investigation, graph]
 endpoints:
-  reset: POST /reset
-  step: POST /step
-  state: GET /state
-  metadata: GET /metadata
-  health: GET /health
+  reset: /reset
+  step: /step
+  state: /state
+reward:
+  min: 0.0
+  max: 1.0
 observation_space:
   type: object
   fields:
@@ -38,16 +38,6 @@ action_space:
     - depth: integer|null
     - decision: string|null
     - suspect_entity_ids: list
-reward_space:
-  type: float
-  range: [0.0, 1.0]
-  partial_credit: true
-  breakdown:
-    - prevented_loss_ratio: float
-    - benign_harm_ratio: float
-    - suspect_f1: float
-    - disposition_accuracy: float
-    - cost_ratio: float
 tasks:
   - id: easy
     name: Easy Single Ring V1
